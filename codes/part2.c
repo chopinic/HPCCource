@@ -3,21 +3,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <omp.h>
 
 void init(double u[N][N]) {
   long int t = (long int)time(NULL);
-  // srand48(t);
+  srand48(t);
+  #pragma omp parallel for collapse(2)
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-      // u[n1][n2] = drand48(); // For debugging, make this not random!
+  //   u[n1][n2] = drand48(); // For debugging, make this not random!
+
     }
   }
-};
+}
 
 void dudt(double u[N][N], double du[N][N]) {
   double sum;
   int count;
+  #pragma omp parallel for collapse(2) private(sum, count)
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       sum = 0.0;
@@ -35,32 +39,32 @@ void dudt(double u[N][N], double du[N][N]) {
                                            // right-hand-side of the equations
     }
   }
-};
+}
 
 void step(double u[N][N], double du[N][N]) {
-  for (int n1 = 0; n1 < N; n1++) { 
+  #pragma omp parallel for collapse(2)
+  for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       u[n1][n2] += h * du[n1][n2];
     }
   }
-};
+}
 
 void stat(double stats[2], double u[N][N]) {
   double mean = 0.0;
-  for (int n1 = 0; n1 < N; n1++) {
-    for (int n2 = 0; n2 < N; n2++) {
-      mean += u[n1][n2] / (N * N);
-    }
-  }
-  stats[0] = mean;
   double var = 0.0;
+
+  #pragma omp parallel for collapse(2) reduction(+:mean, var)
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
-      var += (u[n1][n2] - mean) * (u[n1][n2] - mean) / (N * N);
+      mean += u[n1][n2];
+      var += (u[n1][n2] - mean) * (u[n1][n2] - mean) ;
     }
   }
-  stats[1] = var;
-};
+
+  stats[0] = mean / (N * N);
+  stats[1] = var / (N * N);
+}
 
 void write(double u[N][N], int m) {
   char outstate[80];
@@ -74,10 +78,11 @@ void write(double u[N][N], int m) {
       }
       fprintf(fptr, "\n");
     }
+    fclose(fptr); // Close the file after writing
   } else {
     printf("Failed to write state_%i.txt!\n", m);
   }
-};
+}
 
 int main(int argc, char **argv) {
 
@@ -104,5 +109,7 @@ int main(int argc, char **argv) {
     step(u, du);
   }
 
+  fclose(fptr); // Close the stats.txt file after writing all statistics
+
   return 0;
-};
+}
