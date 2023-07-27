@@ -11,8 +11,9 @@ void init(double u[N][N]) {
   #pragma omp parallel for collapse(2)
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
-      u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-  //   u[n1][n2] = drand48(); // For debugging, make this not random!
+      // deterministic input
+      // u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
+      u[n1][n2] = drand48(); // For debugging, make this not random!
 
     }
   }
@@ -93,7 +94,6 @@ void write(double u[N][N], int m) {
 }
 
 int main(int argc, char **argv) {
-
   double u[N][N];
   double du[N][N];
   double stats[2];
@@ -111,13 +111,13 @@ int main(int argc, char **argv) {
       stat(stats, u);
       fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
       // Use these for diagnostic outputs; slow!
-      write(u, m);
+      // write(u, m);
       printf("\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
     }
     step(u, du);
   }
 
   fclose(fptr); // Close the stats.txt file after writing all statistics
-
+  
   return 0;
 }

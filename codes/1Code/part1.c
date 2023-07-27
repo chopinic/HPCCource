@@ -4,27 +4,22 @@
 #include <stdlib.h>
 #include <time.h>
 #include "mpi.h"
-#define MAX_WORLD_SIZE 8
 
-int sendcounts[MAX_WORLD_SIZE];
-int displs[MAX_WORLD_SIZE];
-
-void init(double u[N][N], int i_first, int i_last, int world_size, int world_rank) {
-    // srand48(t);
+void init(double u[N][N], int i_first, int i_last, int world_size) {
+    long int t = (long int)time(NULL);
+    srand48(t);
     for (int n1 = i_first; n1 <= i_last; n1++) {
         for (int n2 = 0; n2 < N; n2++) {
-            u[n1][n2] = (double)1 / ((double)n1 * 1.1 + 1.2 + (double)n2);
-            // u[n1][n2] = drand48(); // For debugging, make this not random!
+            // deterministic input
+            // u[n1][n2] = (double)1 / ((double)n1 * 1.1 + 1.2 + (double)n2);
+            u[n1][n2] = drand48(); // For debugging, make this not random!
         }
     }
-
-
-    MPI_Gatherv(MPI_IN_PLACE, sendcounts[world_rank], MPI_DOUBLE, u, sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Allgather(MPI_IN_PLACE, N * N / world_size, MPI_DOUBLE, u, N * N / world_size, MPI_DOUBLE, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
-
 }
 
-void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size, int world_rank) {
+void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size) {
     double sum;
     int count;
     for (int n1 = i_first; n1 <= i_last; n1++) {
@@ -43,17 +38,17 @@ void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_si
                 u[n1][n2] * (1.0 - sum / count); // And then the actual right-hand-side of the equations
         }
     }
-    MPI_Gatherv(MPI_IN_PLACE, sendcounts[world_rank], MPI_DOUBLE, du, sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Allgather(MPI_IN_PLACE, N * N / world_size, MPI_DOUBLE, du, N * N / world_size, MPI_DOUBLE, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void step(double u[N][N], double du[N][N], int i_first, int i_last, int world_size, int world_rank) {
+void step(double u[N][N], double du[N][N], int i_first, int i_last, int world_size) {
     for (int n1 = i_first; n1 <= i_last; n1++) {
         for (int n2 = 0; n2 < N; n2++) {
             u[n1][n2] += h * du[n1][n2];
         }
     }
-    MPI_Gatherv(MPI_IN_PLACE, sendcounts[world_rank], MPI_DOUBLE, du, sendcounts, displs, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Allgather(MPI_IN_PLACE, N * N / world_size, MPI_DOUBLE, u, N * N / world_size, MPI_DOUBLE, MPI_COMM_WORLD);
     MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -107,8 +102,6 @@ void writeFile(double u[N][N], int m) {
 
 
 int main(int argc, char **argv) {
-    double start_time = (double)time(NULL);
-
 
     MPI_Init(&argc, &argv);
     int world_rank,world_size;
@@ -121,32 +114,6 @@ int main(int argc, char **argv) {
     if (world_rank == world_size - 1) {
         i_last = N - 1;
     }
-    if (world_rank == 0) {
-        for (int i = 0; i < world_size; i++) {
-            sendcounts[i] = (N / world_size) * N;
-            displs[i] = (N / world_size) * i * N;
-        }
-        int last_rank_portion = N - (N / world_size) * (world_size - 1);
-        sendcounts[world_size - 1] = last_rank_portion * N;
-    }
-
-
-    printf("rank ID: %d, i_first: %d i_last:%d\n", world_rank, i_first, i_last);
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    if (world_rank == 0) {
-        printf("sendcounts array: ");
-        for (int i = 0; i < world_size; i++) {
-            printf("%d ", sendcounts[i]);
-        }
-        printf("\n");
-
-        printf("displs array: ");
-        for (int i = 0; i < world_size; i++) {
-            printf("%d ", displs[i]);
-        }
-        printf("\n");
-    }
 
     double u[N][N];
     double du[N][N];
@@ -158,30 +125,23 @@ int main(int argc, char **argv) {
         fprintf(fptr, "#\tt\tmean\tvar\n");
         printf("#\tt\tmean\tvar\n");
     }
-    init(u, i_first, i_last, world_size, world_rank);
+    init(u, i_first, i_last, world_size);
     stat(stats, u, i_first, i_last);
 
     for (int m = 0; m < M; m++) {
-        dudt(u, du, i_first, i_last, world_size, world_rank);
+        dudt(u, du, i_first, i_last, world_size);
         if (m % mm == 0) {
             stat(stats, u, i_first, i_last);
             if (world_rank == 0) {
                 fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
-                writeFile(u, m);
+                // writeFile(u, m);
                 printf("\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
             }
         }
 
-        step(u, du, i_first, i_last, world_size, world_rank);
+        step(u, du, i_first, i_last, world_size);
     }
 
     MPI_Finalize();
-    if (world_rank == 0) {
-
-        double end_time = (double)time(NULL);
-        double time_cost = end_time - start_time;
-        printf("Program time cost: %lf seconds\n", time_cost);
-    }
-
     return 0;
 }

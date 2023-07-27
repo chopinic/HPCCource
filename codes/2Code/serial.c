@@ -6,11 +6,12 @@
 
 void init(double u[N][N]) {
   long int t = (long int)time(NULL);
-  // srand48(t);
+  srand48(t);
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
-      u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-      // u[n1][n2] = drand48(); // For debugging, make this not random!
+      // deterministic input
+      // u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
+      u[n1][n2] = drand48(); // For debugging, make this not random!
     }
   }
 };
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
       stat(stats, u);
       fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
       // Use these for diagnostic outputs; slow!
-      write(u, m);
+      // write(u, m);
       printf("\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
     }
     step(u, du);
