@@ -64,7 +64,7 @@ void stat(double stats[2], double u[N][N]) {
 
 void write(double u[N][N], int m) {
   char outstate[80];
-  int fileSuccess = sprintf(outstate, "state_%i.txt", m);
+  int fileSuccess = sprintf(outstate, "./part2serial/state_%i.txt", m);
   if (fileSuccess > 0) {
     FILE *fptr = fopen(outstate, "w");
     for (int n1 = 0; n1 < N; n1++) {
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
   double du[N][N];
   double stats[2];
 
-  FILE *fptr = fopen("stats.txt", "w");
+  FILE *fptr = fopen("./part2serial/stats.txt", "w");
   fprintf(fptr, "#\tt\tmean\tvar\n");
   printf("#\tt\tmean\tvar\n");
 

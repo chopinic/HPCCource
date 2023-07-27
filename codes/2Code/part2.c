@@ -54,21 +54,29 @@ void stat(double stats[2], double u[N][N]) {
   double mean = 0.0;
   double var = 0.0;
 
-  #pragma omp parallel for collapse(2) reduction(+:mean, var)
+  #pragma omp parallel for collapse(2) reduction(+:mean)
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       mean += u[n1][n2];
-      var += (u[n1][n2] - mean) * (u[n1][n2] - mean) ;
     }
   }
+  mean /= (N * N);
 
-  stats[0] = mean / (N * N);
-  stats[1] = var / (N * N);
+  #pragma omp parallel for collapse(2) reduction(+:var)
+  for (int n1 = 0; n1 < N; n1++) {
+    for (int n2 = 0; n2 < N; n2++) {
+      var += (u[n1][n2] - mean) * (u[n1][n2] - mean);
+    }
+  }
+  var /= (N * N);
+
+  stats[0] = mean;
+  stats[1] = var;
 }
 
 void write(double u[N][N], int m) {
   char outstate[80];
-  int fileSuccess = sprintf(outstate, "state_%i.txt", m);
+  int fileSuccess = sprintf(outstate, "./part2out/state_%i.txt", m);
   if (fileSuccess > 0) {
     FILE *fptr = fopen(outstate, "w");
     for (int n1 = 0; n1 < N; n1++) {
@@ -90,7 +98,7 @@ int main(int argc, char **argv) {
   double du[N][N];
   double stats[2];
 
-  FILE *fptr = fopen("stats.txt", "w");
+  FILE *fptr = fopen("./part2out/stats.txt", "w");
   fprintf(fptr, "#\tt\tmean\tvar\n");
   printf("#\tt\tmean\tvar\n");
 
