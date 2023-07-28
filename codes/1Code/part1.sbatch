@@ -8,7 +8,7 @@
 
 # Run in the 'shared' queue (job may share node with other jobs)
 #SBATCH -p test 
-#SBATCH -o outPart2Sbatch.out
+#SBATCH -o outPart1Sbatch.out
 
 # Modules necessary for job:
 module purge
