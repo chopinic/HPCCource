@@ -3,7 +3,7 @@
 # Request resources:
 #SBATCH -N 1		# number of compute nodes. 
 #SBATCH -c 4		# number of CPU cores, one per thread, up to 128
-#SBATCH --mem=1G	# memory required, up to 250G on standard nodes
+#SBATCH --mem=10G	# memory required, up to 250G on standard nodes
 #SBATCH --time=0:15:0	# time limit for job (format:  days-hours:minutes:seconds)
 #SBATCH -o outPart2Sbatch.out
 #SBATCH -p test 
