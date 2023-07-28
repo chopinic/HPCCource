@@ -67,13 +67,13 @@ void write(double u[N][N], int m) {
   char outstate[80];
   int fileSuccess = sprintf(outstate, "./part2serial/state_%i.txt", m);
   if (fileSuccess > 0) {
-    FILE *fptr = fopen(outstate, "w");
+    // FILE *fptr = fopen(outstate, "w");
     for (int n1 = 0; n1 < N; n1++) {
       for (int n2 = 0; n2 < N; n2++) {
         // this segfaults when fptr is null.
-        fprintf(fptr, "%2.4f\t", u[n1][n2]);
+        // fprintf(fptr, "%2.4f\t", u[n1][n2]);
       }
-      fprintf(fptr, "\n");
+      // fprintf(fptr, "\n");
     }
   } else {
     printf("Failed to write state_%i.txt!\n", m);
@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
   double du[N][N];
   double stats[2];
 
-  FILE *fptr = fopen("./part2serial/stats.txt", "w");
+  // FILE *fptr = fopen("./part2serial/stats.txt", "w");
   fprintf(fptr, "#\tt\tmean\tvar\n");
   printf("#\tt\tmean\tvar\n");
 
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     dudt(u, du);
     if (m % mm == 0) {
       stat(stats, u);
-      fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
+      // fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
       // Use these for diagnostic outputs; slow!
       // write(u, m);
       printf("\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);

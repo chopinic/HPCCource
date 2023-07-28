@@ -79,15 +79,15 @@ void write(double u[N][N], int m) {
   char outstate[80];
   int fileSuccess = sprintf(outstate, "./part2out/state_%i.txt", m);
   if (fileSuccess > 0) {
-    FILE *fptr = fopen(outstate, "w");
+    // FILE *fptr = fopen(outstate, "w");
     for (int n1 = 0; n1 < N; n1++) {
       for (int n2 = 0; n2 < N; n2++) {
         // this segfaults when fptr is null.
-        fprintf(fptr, "%2.4f\t", u[n1][n2]);
+        // fprintf(fptr, "%2.4f\t", u[n1][n2]);
       }
-      fprintf(fptr, "\n");
+      // fprintf(fptr, "\n");
     }
-    fclose(fptr); // Close the file after writing
+    // fclose(fptr); // Close the file after writing
   } else {
     printf("Failed to write state_%i.txt!\n", m);
   }
