@@ -121,6 +121,7 @@ int main(int argc, char **argv) {
 
     // FILE *fptr;
     if (world_rank == 0) {
+        printf("now N: %d",N);
         // fptr = fopen("./part1out/stats.txt", "w");
         // fprintf(fptr, "#\tt\tmean\tvar\n");
         printf("#\tt\tmean\tvar\n");
