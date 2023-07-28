@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
   double stats[2];
 
   // FILE *fptr = fopen("./part2serial/stats.txt", "w");
-  fprintf(fptr, "#\tt\tmean\tvar\n");
+  // fprintf(fptr, "#\tt\tmean\tvar\n");
   printf("#\tt\tmean\tvar\n");
 
   init(u);
