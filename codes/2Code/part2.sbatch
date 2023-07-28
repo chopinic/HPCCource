@@ -5,9 +5,10 @@
 #SBATCH -c 4		# number of CPU cores, one per thread, up to 128
 #SBATCH --mem=1G	# memory required, up to 250G on standard nodes
 #SBATCH --time=0:15:0	# time limit for job (format:  days-hours:minutes:seconds)
+#SBATCH -o outPart2Sbatch.out
+#SBATCH -p test 
 
 # Run in the 'shared' queue (job may share node with other jobs)
-#SBATCH -p shared
 
 # Modules necessary for job:
 module purge
@@ -15,6 +16,11 @@ module load gcc
 
 # compile part2.c into part2
 gcc -fopenmp -lm part2.c -o part2
+for threads in 4 8 16 32
 
+do
+    echo "OMP_NUM_THREADS=$threads"
+    time OMP_NUM_THREADS=$threads ./part2
+    # Execute your OpenMP program here with the specified number of threads
+done
 # run part2 with 4 threads
-OMP_NUM_THREADS=4 ./part2

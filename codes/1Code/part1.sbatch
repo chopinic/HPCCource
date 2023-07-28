@@ -7,7 +7,8 @@
 #SBATCH --time=0:15:0	# time limit for job (format:  days-hours:minutes:seconds)
 
 # Run in the 'shared' queue (job may share node with other jobs)
-#SBATCH -p shared 
+#SBATCH -p test 
+#SBATCH -o outPart2Sbatch.out
 
 # Modules necessary for job:
 module purge
