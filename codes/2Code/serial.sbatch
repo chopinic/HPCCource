@@ -1,3 +1,6 @@
+#!/bin/bash
+
+
 # Request resources:
 #SBATCH -N 1		# number of compute nodes. 
 #SBATCH -c 4		# number of CPU cores, one per thread, up to 128
