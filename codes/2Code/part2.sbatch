@@ -5,7 +5,7 @@
 #SBATCH -c 101		# number of CPU cores, one per thread, up to 128
 #SBATCH --mem=30G	# memory required, up to 250G on standard nodes
 #SBATCH --time=0:15:0	# time limit for job (format:  days-hours:minutes:seconds)
-#SBATCH -o noCachePart2Sbatch.out
+#SBATCH -o outPart2Sbatch.out
 #SBATCH -p test 
 
 # Run in the 'shared' queue (job may share node with other jobs)
