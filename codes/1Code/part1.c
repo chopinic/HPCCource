@@ -81,28 +81,9 @@ void stat(double stats[2], double u[N][N], int i_first, int i_last) {
     MPI_Allreduce(&local_var, &var, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
     var /= (N * N);
-
     stats[0] = mean;
     stats[1] = var;
 
-}
-
-// change func name to writeFile to avoid name conflict with default "write" func in c lib.
-void writeFile(double u[N][N], int m) {
-    char outstate[80];
-    int fileSuccess = sprintf(outstate, "./part1out/state_%i.txt", m);
-    if (fileSuccess > 0) {
-        // FILE *fptr = fopen(outstate, "w");
-        for (int n1 = 0; n1 < N; n1++) {
-            for (int n2 = 0; n2 < N; n2++) {
-                // this segfaults when fptr is null.
-                // fprintf(fptr, "%2.4f\t", u[n1][n2]);
-            }
-            // fprintf(fptr, "\n");
-        }
-    } else {
-        printf("Failed to write state_%i.txt!\n", m);
-    }
 }
 
 
@@ -140,7 +121,6 @@ int main(int argc, char **argv) {
             stat(stats, u, i_first, i_last);
             if (world_rank == 0) {
                 // fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
-                // writeFile(u, m);
                 printf("\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
             }
         }

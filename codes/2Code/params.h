@@ -2,7 +2,7 @@
 #define _XOPEN_SOURCE
 
 const double h = 0.01;
-const int N = 256;
+const int N = 512;
 const int M = 1005;
 const int l = 3;
 const int ml = 1;
