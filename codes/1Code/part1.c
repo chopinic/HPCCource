@@ -46,6 +46,11 @@ void step(double u[N][N], double du[N][N], int i_first, int i_last, int world_si
     for (int n1 = i_first; n1 <= i_last; n1++) {
         for (int n2 = 0; n2 < N; n2++) {
             u[n1][n2] += h * du[n1][n2];
+            if (u[n1][n2] > 1.0) {
+              u[n1][n2] = 1.0;
+            } else if (u[n1][n2] < 0.0) {
+              u[n1][n2] = 0.0;
+            }
         }
     }
     MPI_Allgather(MPI_IN_PLACE, N * N / world_size, MPI_DOUBLE, u, N * N / world_size, MPI_DOUBLE, MPI_COMM_WORLD);

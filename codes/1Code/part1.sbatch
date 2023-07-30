@@ -18,4 +18,4 @@ module load gcc openmpi
 mpicc -lm part1.c -o part1
 
 # run part1 with 4 processes (from #SBATCH -n, above)
-mpirun ./part1
+time mpirun ./part1
