@@ -10,8 +10,8 @@ void init(double u[N][N]) {
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       // deterministic input
-      u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-      // u[n1][n2] = drand48(); // For debugging, make this not random!
+      // u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
+      u[n1][n2] = drand48(); // For debugging, make this not random!
     }
   }
 };
