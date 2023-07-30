@@ -128,7 +128,16 @@ void write(double u[N][N], int m) {
 };
 
 int main(int argc, char **argv) {
-
+  if (argc >= 3) {
+      for (int i = 1; i < argc; i++) {
+          if (strcmp(argv[i], "-NN") == 0) {
+              if (i + 1 < argc) {
+                  N = atoi(argv[i + 1]);
+              }
+          }
+      }
+  }
+  addCacheSize = N + 1;
   double u[N][N];
   double du[N][N];
   double stats[2];

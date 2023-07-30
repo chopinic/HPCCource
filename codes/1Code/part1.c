@@ -88,7 +88,16 @@ void stat(double stats[2], double u[N][N], int i_first, int i_last) {
 
 
 int main(int argc, char **argv) {
-
+    if (argc >= 3) {
+        for (int i = 1; i < argc; i++) {
+            if (strcmp(argv[i], "-NN") == 0) {
+                if (i + 1 < argc) {
+                    N = atoi(argv[i + 1]);
+                }
+            }
+        }
+    }
+    addCacheSize = N + 1;
     MPI_Init(&argc, &argv);
     int world_rank,world_size;
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);

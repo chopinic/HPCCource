@@ -113,6 +113,16 @@ void stat(double stats[2], double u[N][N]) {
 }
 
 int main(int argc, char **argv) {
+  if (argc >= 3) {
+      for (int i = 1; i < argc; i++) {
+          if (strcmp(argv[i], "-NN") == 0) {
+              if (i + 1 < argc) {
+                  N = atoi(argv[i + 1]);
+              }
+          }
+      }
+  }
+  addCacheSize = N + 1;
   double u[N][N];
   double du[N][N];
   double stats[2];
@@ -120,6 +130,7 @@ int main(int argc, char **argv) {
 
   // FILE *fptr = fopen("./part2out/stats.txt", "w");
   // fprintf(fptr, "#\tt\tmean\tvar\n");
+  printf("now N: %d",N);
   printf("#\tt\tmean\tvar\n");
 
   init(u);
