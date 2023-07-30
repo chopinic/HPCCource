@@ -12,8 +12,8 @@ void init(double u[N][N]) {
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       // deterministic input
-      // u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-      u[n1][n2] = drand48(); // For debugging, make this not random!
+      u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
+      // u[n1][n2] = drand48(); // For debugging, make this not random!
 
     }
   }
@@ -21,18 +21,18 @@ void init(double u[N][N]) {
 
 
 void computeIntegralImage(double u[N][N], double addCache[addCacheSize][addCacheSize]) {
+  #pragma omp parallel for
   for (int n1 = 1; n1 < addCacheSize; n1++) {
     addCache[n1][0] = 0.0;
-    #pragma omp parallel for
     for (int n2 = 1; n2 < addCacheSize; n2++) {
-      addCache[n1][n2] = u[n1 - 1][n2 - 1] + addCache[n1 - 1][n2];
+      addCache[n1][n2] = u[n1 - 1][n2 - 1] + addCache[n1][n2-1];
     }
   }
+  #pragma omp parallel for
   for (int n2 = 1; n2 < addCacheSize; n2++) {
     addCache[0][n2] = 0.0;
-    #pragma omp parallel for
     for (int n1 = 1; n1 < addCacheSize; n1++) {
-      addCache[n1][n2] += addCache[n1][n2 - 1];
+      addCache[n1][n2] += addCache[n1-1][n2];
     }
   }
 }
@@ -60,41 +60,41 @@ double computeLocalMean(double addCache[addCacheSize][addCacheSize], int n1, int
   return mean;
 }
 
-// void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]) {
-//   computeIntegralImage(u, addCache);
+void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]) {
+  computeIntegralImage(u, addCache);
 
-//   double mean;
-//   #pragma omp parallel for collapse(2) private(mean)
-//   for (int n1 = 0; n1 < N; n1++) {
-//     for (int n2 = 0; n2 < N; n2++) {
-//       mean = computeLocalMean(addCache, n1, n2);
-//       du[n1][n2] = u[n1][n2] * (1.0 - mean);
-//     }
-//   }
-// }
-
-void dudt(double u[N][N], double du[N][N]) {
-  double sum;
-  int count;
-  #pragma omp parallel for collapse(2) private(sum, count)
+  double mean;
+  #pragma omp parallel for collapse(2) private(mean)
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
-      sum = 0.0;
-      count = 0;
-      for (int l1 = n1 - ml; l1 <= n1 + ml; l1++) {
-        for (int l2 = n2 - ml; l2 <= n2 + ml; l2++) {
-          if ((l1 >= 0) && (l1 < N) && (l2 >= 0) && (l2 < N)) {
-            sum += u[l1][l2]; // Accumulate the local average in sum
-            count++;          // Track the count!
-          }
-        }
-      }
-      du[n1][n2] =
-          u[n1][n2] * (1.0 - sum / count); // And then the actual
-                                           // right-hand-side of the equations
+      mean = computeLocalMean(addCache, n1, n2);
+      du[n1][n2] = u[n1][n2] * (1.0 - mean);
     }
   }
 }
+
+// void dudt(double u[N][N], double du[N][N]) {
+//   double sum;
+//   int count;
+//   #pragma omp parallel for collapse(2) private(sum, count)
+//   for (int n1 = 0; n1 < N; n1++) {
+//     for (int n2 = 0; n2 < N; n2++) {
+//       sum = 0.0;
+//       count = 0;
+//       for (int l1 = n1 - ml; l1 <= n1 + ml; l1++) {
+//         for (int l2 = n2 - ml; l2 <= n2 + ml; l2++) {
+//           if ((l1 >= 0) && (l1 < N) && (l2 >= 0) && (l2 < N)) {
+//             sum += u[l1][l2]; // Accumulate the local average in sum
+//             count++;          // Track the count!
+//           }
+//         }
+//       }
+//       du[n1][n2] =
+//           u[n1][n2] * (1.0 - sum / count); // And then the actual
+//                                            // right-hand-side of the equations
+//     }
+//   }
+// }
 
 void step(double u[N][N], double du[N][N]) {
   #pragma omp parallel for collapse(2)
@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
   stat(stats, u);
 
   for (int m = 0; m < M; m++) {
-    dudt(u, du);
+    dudt(u, du, addCache);
     if (m % mm == 0) {
       stat(stats, u);
       // fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
