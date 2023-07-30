@@ -11,8 +11,8 @@
 #SBATCH -o outAllPart1Sbatch.out
 
 # Modules necessary for job:
-# module purge
-# module load gcc openmpi
+module purge
+module load gcc openmpi
 
 # gcc -O3 ./serial.c -o serial
 

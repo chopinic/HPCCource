@@ -11,8 +11,8 @@
 # Run in the 'shared' queue (job may share node with other jobs)
 
 # Modules necessary for job:
-# module purge
-# module load gcc
+module purge
+module load gcc
 
 
 gcc -O3 ./serial.c -o serial
