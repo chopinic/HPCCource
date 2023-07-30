@@ -13,6 +13,7 @@ void init(double u[N][N]);
 
 void step(double u[N][N], double du[N][N]);
 
-void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]);
+// void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]);
+void dudt(double u[N][N], double du[N][N]);
 
 void stat(double states[2], double u[N][N]);
