@@ -18,7 +18,6 @@ void init(double u[N][N], int i_first, int i_last, int world_size);
 
 void step(double u[N][N], double du[N][N], int i_first, int i_last, int world_size);
 
-// void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size);
-void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size, double addCache[addCacheSize][addCacheSize]);
+void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size);
 
 void stat(double stats[2], double u[N][N], int i_first, int i_last);

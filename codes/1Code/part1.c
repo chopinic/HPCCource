@@ -22,91 +22,28 @@ void init(double u[N][N], int i_first, int i_last, int world_size)
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
-void tranpose(double addCache[addCacheSize][addCacheSize])
+void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size)
 {
-  for (int i = 0; i < addCacheSize; i++)
-  {
-    for (int ii = 0; ii < addCacheSize; ii++)
-    {
-      double t = addCache[i][ii];
-      addCache[i][ii] = addCache[ii][i];
-      addCache[ii][i] = t;
+    double sum;
+    int count;
+    for (int n1 = st; n1 <= ed; n1++) {
+        for (int n2 = 0; n2 < N; n2++) {
+            sum = 0.0;
+            count = 0;
+            for (int l1 = n1 - ml; l1 <= n1 + ml; l1++) {
+                for (int l2 = n2 - ml; l2 <= n2 + ml; l2++) {
+                    if ((l1 >= 0) && (l1 < N) && (l2 >= 0) && (l2 < N)) {
+                        sum += u[l1][l2]; // Accumulate the local average in sum
+                        count++;          // Track the count!
+                    }
+                }
+            }
+            du[n1][n2] =
+                u[n1][n2] * (1.0 - sum / count); // And then the actual right-hand-side of the equations
+        }
     }
-  }
-}
-
-void computeIntegralImage(double u[N][N], int i_first, int i_last, double addCache[addCacheSize][addCacheSize])
-{
-  double localColumnSum[i_last - i_first + 1][addCacheSize];
-  double localRowSum[i_last - i_first + 1][addCacheSize];
-
-  for (int i = 0; i < i_last - i_first; i++)
-  {
-    localColumnSum[i][0] = 0.0;
-    for (int j = 0; j < N; j++)
-    {
-      localColumnSum[i + 1][j + 1] = u[i+i_first][j] + localColumnSum[i+1][j];
-    }
-  }
-  MPI_Allgather(localColumnSum[1], (i_last - i_first) * addCacheSize, MPI_DOUBLE,
-                addCache[1], (i_last - i_first) * addCacheSize, MPI_DOUBLE, MPI_COMM_WORLD);
-  if (i_first == 0)
-    tranpose(addCache);
-  MPI_Barrier(MPI_COMM_WORLD);
-  for (int i = 0; i < i_last - i_first; i++)
-  {
-    localRowSum[i][0] = 0.0;
-    for (int j = 0; j < N; j++)
-    {
-      localRowSum[i + 1][j + 1] = addCache[i+1+i_first][j+1] + localRowSum[i+1][j];
-    }
-  }
-  MPI_Allgather(localRowSum[1], (i_last - i_first) * addCacheSize, MPI_DOUBLE,
-                addCache[1], (i_last - i_first) * addCacheSize, MPI_DOUBLE, MPI_COMM_WORLD);
-  if (i_first == 0)
-    tranpose(addCache);
-  MPI_Barrier(MPI_COMM_WORLD);
-}
-
-double computeLocalMean(double addCache[addCacheSize][addCacheSize], int n1, int n2)
-{
-  int l1_start = n1 - ml;
-  if (l1_start < 0)
-    l1_start = 0;
-  int l1_end = n1 + ml + 1;
-  if (l1_end > N)
-    l1_end = N;
-  int l2_start = n2 - ml;
-  if (l2_start < 0)
-    l2_start = 0;
-  int l2_end = n2 + ml + 1;
-  if (l2_end > N)
-    l2_end = N;
-
-  int count_total = (l1_end - l1_start) * (l2_end - l2_start);
-
-  double sum = addCache[l1_end][l2_end] - addCache[l1_end][l2_start] -
-               addCache[l1_start][l2_end] + addCache[l1_start][l2_start];
-
-  double mean = sum / count_total;
-  return mean;
-}
-
-void dudt(double u[N][N], double du[N][N], int i_first, int i_last, int world_size, double addCache[addCacheSize][addCacheSize])
-{
-  computeIntegralImage(u, i_first, i_last, addCache);
-
-  double mean;
-  for (int n1 = 0; n1 < N; n1++)
-  {
-    for (int n2 = 0; n2 < N; n2++)
-    {
-      mean = computeLocalMean(addCache, n1, n2);
-      du[n1][n2] = u[n1][n2] * (1.0 - mean);
-    }
-  }
-  MPI_Allgather(MPI_IN_PLACE, N * N / world_size, MPI_DOUBLE, du, N * N / world_size, MPI_DOUBLE, MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Allgather(MPI_IN_PLACE, N * N / world_size, MPI_DOUBLE, du, N * N / world_size, MPI_DOUBLE, MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);
 }
 
 void step(double u[N][N], double du[N][N], int i_first, int i_last, int world_size)
@@ -178,7 +115,6 @@ int main(int argc, char **argv)
       }
     }
   }
-  addCacheSize = N + 1;
   MPI_Init(&argc, &argv);
   int world_rank, world_size;
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -195,7 +131,6 @@ int main(int argc, char **argv)
   double u[N][N];
   double du[N][N];
   double stats[2];
-  double addCache[addCacheSize][addCacheSize];
   // FILE *fptr;
   if (world_rank == 0)
   {
@@ -210,7 +145,7 @@ int main(int argc, char **argv)
 
   for (int m = 0; m < M; m++)
   {
-    dudt(u, du, i_first, i_last, world_size, addCache);
+    dudt(u, du, i_first, i_last, world_size);
     if (m % mm == 0)
     {
       stat(stats, u, i_first, i_last);
