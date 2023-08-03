@@ -10,8 +10,8 @@ void init(double u[N][N]) {
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       // deterministic input
-      // u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-      u[n1][n2] = drand48(); // For debugging, make this not random!
+      u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
+      // u[n1][n2] = drand48(); // For debugging, make this not random!
     }
   }
 };
@@ -137,13 +137,13 @@ void write(double u[N][N], int m) {
   char outstate[80];
   int fileSuccess = sprintf(outstate, "./part2serial/state_%i.txt", m);
   if (fileSuccess > 0) {
-    // FILE *fptr = fopen(outstate, "w");
+    FILE *fptr = fopen(outstate, "w");
     for (int n1 = 0; n1 < N; n1++) {
       for (int n2 = 0; n2 < N; n2++) {
         // this segfaults when fptr is null.
-        // fprintf(fptr, "%2.4f\t", u[n1][n2]);
+        fprintf(fptr, "%2.4f\t", u[n1][n2]);
       }
-      // fprintf(fptr, "\n");
+      fprintf(fptr, "\n");
     }
   } else {
     printf("Failed to write state_%i.txt!\n", m);
@@ -178,8 +178,8 @@ int main(int argc, char **argv) {
       stat(stats, u);
       // fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
       // Use these for diagnostic outputs; slow!
-      // write(u, m);
-      printf("\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
+      write(du, m);
+      printf("\t%2.2f\t%2.10f\t%2.10f\n", m * h, stats[0], stats[1]);
     }
     step(u, du);
   }
