@@ -11,6 +11,8 @@
 #SBATCH -o outAllPart1Sbatch.out
 
 # Modules necessary for job:
+module purge
+module load gcc openmpi
 
 # run part1 with 4 processes (from #SBATCH -n, above)
 for Nnum in 32 64 128 256; do
