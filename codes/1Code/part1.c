@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include "mpi.h"
 void init(double u[firstDim][N], int i_first, int i_last, int rank, int size)
 {
   long int t = (long int)time(NULL);
