@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <omp.h>
 
 void init(double u[N][N]) {
   long int t = (long int)time(NULL);

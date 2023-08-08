@@ -2,12 +2,12 @@
 #define _XOPEN_SOURCE
 
 const double h = 0.01;
-int N = 128;
+int N = 64;
 const int M = 10000;
 const int l = 3;
 const int ml = 1;
-const int mm = 100;
-int addCacheSize = 129; 
+const int mm = 1000;
+int addCacheSize = 65; 
 
 void init(double u[N][N]);
 

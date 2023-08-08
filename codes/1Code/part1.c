@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "mpi.h"
 
 void init(double u[firstDim][N], int i_first, int i_last, int rank, int size)
 {
@@ -14,9 +13,9 @@ void init(double u[firstDim][N], int i_first, int i_last, int rank, int size)
     for (int n2 = 0; n2 < N; n2++)
     {
       // deterministic input
-      int st = (N/size)*rank;
-      u[n1][n2] = (double)1 / ((double)(n1-ml+st) * 1.1 + 1.2 + (double)n2);
-      // u[n1][n2] = drand48(); // For debugging, make this not random!
+      // int st = (N/size)*rank;
+      // u[n1][n2] = (double)1 / ((double)(n1-ml+st) * 1.1 + 1.2 + (double)n2);
+      u[n1][n2] = drand48(); // For debugging, make this not random!
     }
   }
 }
@@ -157,13 +156,13 @@ int main(int argc, char **argv)
   double u[firstDim][N];
   double du[firstDim][N];
   double stats[2];
-  // FILE *fptr;
+  FILE *fptr;
   if (rank == 0)
   {
     printf("now N: %d", N);
 
-    // fptr = fopen("./part1out/stats.txt", "w");
-    // fprintf(fptr, "#\tt\tmean\tvar\n");
+    fptr = fopen("stats.txt", "w");
+    fprintf(fptr, "#\tt\tmean\tvar\n");
     printf("#\tt\tmean\tvar\n");
   }
   init(u, i_first, i_last, rank, size);
@@ -179,7 +178,7 @@ int main(int argc, char **argv)
       stat(stats, u, i_first, i_last);
       if (rank == 0)
       {
-        // fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
+        fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
         // writeFile(u, m);
 
         printf("\t%2.2f\t%2.10f\t%2.10f\n", m * h, stats[0], stats[1]);

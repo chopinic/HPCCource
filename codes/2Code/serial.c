@@ -10,8 +10,8 @@ void init(double u[N][N]) {
   for (int n1 = 0; n1 < N; n1++) {
     for (int n2 = 0; n2 < N; n2++) {
       // deterministic input
-      u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
-      // u[n1][n2] = drand48(); // For debugging, make this not random!
+      // u[n1][n2] =  (double)1/((double)n1*1.1 + 1.2 + (double)n2);
+      u[n1][n2] = drand48(); // For debugging, make this not random!
     }
   }
 };
@@ -64,39 +64,40 @@ double computeLocalMean(double addCache[addCacheSize][addCacheSize], int n1, int
         // 6.00    0.75649 0.00651
         // 7.00    0.89195 0.00166
         // 8.00    0.95701 0.00030
-void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]) {
-  computeIntegralImage(u, addCache);
 
-  double mean;
-  for (int n1 = 0; n1 < N; n1++) {
-    for (int n2 = 0; n2 < N; n2++) {
-      mean = computeLocalMean(addCache, n1, n2);
-      du[n1][n2] = u[n1][n2] * (1.0 - mean);
-    }
-  }
-}
+// void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]) {
+//   computeIntegralImage(u, addCache);
 
-// void dudt(double u[N][N], double du[N][N]) {
-//   double sum;
-//   int count;
+//   double mean;
 //   for (int n1 = 0; n1 < N; n1++) {
 //     for (int n2 = 0; n2 < N; n2++) {
-//       sum = 0.0;
-//       count = 0;
-//       for (int l1 = n1 - ml; l1 <= n1 + ml; l1++) {
-//         for (int l2 = n2 - ml; l2 <= n2 + ml; l2++) {
-//           if ((l1 >= 0) && (l1 < N) && (l2 >= 0) && (l2 < N)) {
-//             sum += u[l1][l2]; // Accumulate the local average in sum
-//             count++;          // Track the count!
-//           }
-//         }
-//       }
-//       du[n1][n2] =
-//           u[n1][n2] * (1.0 - sum / count); // And then the actual
-//                                            // right-hand-side of the equations
+//       mean = computeLocalMean(addCache, n1, n2);
+//       du[n1][n2] = u[n1][n2] * (1.0 - mean);
 //     }
 //   }
-// };
+// }
+
+void dudt(double u[N][N], double du[N][N], double addCache[addCacheSize][addCacheSize]) {
+  double sum;
+  int count;
+  for (int n1 = 0; n1 < N; n1++) {
+    for (int n2 = 0; n2 < N; n2++) {
+      sum = 0.0;
+      count = 0;
+      for (int l1 = n1 - ml; l1 <= n1 + ml; l1++) {
+        for (int l2 = n2 - ml; l2 <= n2 + ml; l2++) {
+          if ((l1 >= 0) && (l1 < N) && (l2 >= 0) && (l2 < N)) {
+            sum += u[l1][l2]; // Accumulate the local average in sum
+            count++;          // Track the count!
+          }
+        }
+      }
+      du[n1][n2] =
+          u[n1][n2] * (1.0 - sum / count); // And then the actual
+                                           // right-hand-side of the equations
+    }
+  }
+};
 
 
 void step(double u[N][N], double du[N][N]) {
@@ -165,8 +166,8 @@ int main(int argc, char **argv) {
   double du[N][N];
   double stats[2];
   double addCache[addCacheSize][addCacheSize];
-  // FILE *fptr = fopen("./part2serial/stats.txt", "w");
-  // fprintf(fptr, "#\tt\tmean\tvar\n");
+  FILE *fptr = fopen("stats.txt", "w");
+  fprintf(fptr, "#\tt\tmean\tvar\n");
   printf("#\tt\tmean\tvar\n");
 
   init(u);
@@ -176,9 +177,9 @@ int main(int argc, char **argv) {
     dudt(u, du, addCache);
     if (m % mm == 0) {
       stat(stats, u);
-      // fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
+      fprintf(fptr, "\t%2.2f\t%2.5f\t%2.5f\n", m * h, stats[0], stats[1]);
       // Use these for diagnostic outputs; slow!
-      write(du, m);
+      // write(du, m);
       printf("\t%2.2f\t%2.10f\t%2.10f\n", m * h, stats[0], stats[1]);
     }
     step(u, du);
